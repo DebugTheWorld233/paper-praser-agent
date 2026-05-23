@@ -68,6 +68,16 @@ The skill must create the following files under `paper-analysis/`:
    - `pytest tests/test_codex_skill_mirror.py`
    - If available, a lightweight frontmatter/catalog grep sanity check.
 
+## OpenClaw Packaging Extension
+
+For the standalone `paper-praser-agent` repository, the OpenClaw target should not depend on slash-command discovery. Instead, package:
+
+- `openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste OpenClaw entrypoint.
+- `openclaw/RUNBOOK_CN.md` as the operator guide.
+- `scripts/paper_source.py` as the local source-preparation helper.
+
+`scripts/paper_source.py` reuses the ARIS `arxiv_fetch.py` design: pure-stdlib arXiv metadata lookup, PDF download, file-size validation, and rate-limit retry. It then adds this project's requirements: output under `paper-analysis/sources/`, JSON metadata, and optional PDF text extraction through `pypdf`, `PyPDF2`, or `pdftotext`.
+
 ## Success Criteria
 
 - A user can invoke `/paper-solution-agent "<paper url or local path> — base repo: <repo>"`.

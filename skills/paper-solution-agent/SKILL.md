@@ -22,6 +22,7 @@ Use this skill before implementation when the user has a specific paper and need
   - `code fully aligned`: official code exists, exact benchmark reproduction is feasible, or the user asks for strict replication.
   - `results close enough`: code/data is missing, stochastic training dominates, or implementation must be reconstructed from paper text.
 - **BLOCKER_MARKERS = `TODO`, `BLOCKED`, `NEEDS_HUMAN_CONFIRMATION`** — use these exact markers for missing facts.
+- **OPENCLAW_MODE** — when running in OpenClaw, treat this `SKILL.md` as a workflow contract instead of a slash command. Prefer file outputs and use `openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste entrypoint.
 
 ## Inputs
 
@@ -32,6 +33,22 @@ Accept any combination of:
 - Optional constraints: GPU budget, target OS, target framework, deadline, target figure/table list, or "only plan, no code".
 
 If the paper itself is inaccessible, stop after creating `07_HUMAN_HELP.md` with the exact access request needed.
+
+## Optional Source Preparation Helper
+
+When the project contains `scripts/paper_source.py`, use it before analysis for arXiv URLs, direct PDF URLs, or local PDFs:
+
+```bash
+python scripts/paper_source.py prepare "<paper-source>" --out paper-analysis
+```
+
+This helper adapts ARIS-style arXiv metadata/PDF download logic and writes:
+
+- `paper-analysis/sources/source_metadata.json`
+- `paper-analysis/sources/<paper>.pdf`
+- `paper-analysis/sources/paper_text.md` when PDF text extraction succeeds
+
+If text extraction fails, do not fabricate paper content. Use the PDF directly if the host agent can read PDFs, or record the blocker in `07_HUMAN_HELP.md`.
 
 ## Workflow
 
@@ -57,6 +74,8 @@ Start `paper-analysis/00_MANIFEST.md` with:
 ### Phase 1: Load and Ground Sources
 
 Read the paper first. Extract claims from the paper text, not from memory. If the source is a URL and the content cannot be fetched, record the blocker.
+
+If `paper-analysis/sources/source_metadata.json` or `paper-analysis/sources/paper_text.md` exists, read them before searching the web. Treat extracted text as a convenience source; verify important claims against the PDF/arXiv page when possible.
 
 When code is available:
 
