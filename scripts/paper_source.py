@@ -6,7 +6,7 @@ This helper adapts the pure-stdlib arXiv search/download pattern used by ARIS
 
 - normalize arXiv IDs / URLs
 - fetch arXiv metadata
-- create a timestamped run directory under `paper-analysis/`
+- create a paper-key run directory under `paper-analysis/`
 - download the PDF into `<analysis-dir>/sources/`
 - extract text when `pypdf`, `PyPDF2`, or `pdftotext` is available
 - write source manifests that an OpenClaw agent can read before generating the
@@ -27,7 +27,6 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
 ATOM_NS = "http://www.w3.org/2005/Atom"
@@ -119,8 +118,7 @@ def build_source_slug(source: str, source_type: str, metadata: dict) -> str:
 
 
 def unique_child_dir(root: Path, slug: str) -> Path:
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    base = root / f"{timestamp}_{slug}"
+    base = root / slug
     candidate = base
     suffix = 2
     while candidate.exists():
@@ -338,7 +336,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="paper-analysis",
         help=(
             "Analysis root directory (default: paper-analysis). By default the command creates "
-            "a timestamped child directory under this root."
+            "a `<paper-key>` child directory under this root, adding `-2`, `-3`, ... if needed."
         ),
     )
     prepare_parser.add_argument(

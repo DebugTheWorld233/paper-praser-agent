@@ -9,16 +9,16 @@
 `paper-solution-agent` 默认会在 `paper-analysis/` 根目录下，为每次任务创建一个独立子目录：
 
 ```text
-paper-analysis/<YYYYMMDD-HHMMSS>_<paper-key>/
+paper-analysis/<paper-key>/
 ```
 
 例如：
 
 ```text
-paper-analysis/20260524-141530_brendan-mcmahan-1602.05629/
+paper-analysis/brendan-mcmahan-1602.05629/
 ```
 
-对于 arXiv 论文，`paper-key` 默认使用 `第一作者-arxiv_id`。对于本地 PDF 或普通 URL，则退回到文件名或 URL 的简化 slug。
+对于 arXiv 论文，`paper-key` 默认使用 `第一作者-arxiv_id`。对于本地 PDF 或普通 URL，则退回到文件名或 URL 的简化 slug。如果同名目录已存在，脚本会自动追加 `-2`、`-3` 等后缀，避免覆盖。
 
 每个任务目录内会生成：
 
@@ -193,7 +193,7 @@ python scripts/paper_source.py metadata 1602.05629
 默认输出示例：
 
 ```text
-paper-analysis/20260524-141530_brendan-mcmahan-1602.05629/
+paper-analysis/brendan-mcmahan-1602.05629/
   00_MANIFEST.md
   01_PAPER_INFO.md
   ...

@@ -16,7 +16,7 @@ Use this skill before implementation when the user has a specific paper and need
 ## Constants
 
 - **OUTPUT_ROOT = `paper-analysis/`** — root directory for all analysis runs.
-- **OUTPUT_DIR = `paper-analysis/<YYYYMMDD-HHMMSS>_<paper-key>/`** — generated documents for one paper go here. Use a new run directory by default so previous analyses are not overwritten. For arXiv papers, prefer `first-author-arxiv-id` as `paper-key`.
+- **OUTPUT_DIR = `paper-analysis/<paper-key>/`** — generated documents for one paper go here. For arXiv papers, prefer `first-author-arxiv-id` as `paper-key`. If the directory already exists, add a numeric suffix such as `-2`.
 - **OUTPUT_LANGUAGE = `Chinese Markdown`** — write all generated analysis documents in Chinese Markdown by default, even when the paper itself is English. Only switch languages if the user explicitly asks for another output language.
 - **DEFAULT_GOAL = `reproduce`** — unless the user asks for improvement, extension, or audit.
 - **SUCCESS_STANDARD** — decide and record one of:
@@ -57,7 +57,7 @@ If the user explicitly requests the legacy flat layout, pass `--flat` and write 
 
 ### Phase 0: Prepare the Workspace
 
-Create `paper-analysis/` if needed. For a new paper, create a fresh run directory using the `YYYYMMDD-HHMMSS_<paper-key>` convention. If a run directory already exists because `scripts/paper_source.py` created it, continue inside that exact directory.
+Create `paper-analysis/` if needed. For a new paper, create a fresh run directory using the `<paper-key>` convention. If the same paper key already exists, create `<paper-key>-2`, `<paper-key>-3`, and so on. If a run directory already exists because `scripts/paper_source.py` created it, continue inside that exact directory.
 
 Start `<analysis_dir>/00_MANIFEST.md` with:
 

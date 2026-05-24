@@ -11,14 +11,14 @@ ARIS is a Markdown-skill research harness. The clean integration point is a new 
 - Skill name: `/paper-solution-agent`
 - Canonical location: `skills/paper-solution-agent/SKILL.md`
 - Default output root when the skill runs: `paper-analysis/`
-- Default per-run output directory: `paper-analysis/<YYYYMMDD-HHMMSS>_<paper-key>/`
+- Default per-run output directory: `paper-analysis/<paper-key>/`
 - Reusable starter template: `templates/PAPER_SOLUTION_AGENT_TEMPLATE_CN.md`
 
 This skill is a pre-experiment planning and audit artifact generator. It can hand off later to `/experiment-bridge`, `/experiment-plan`, `/run-experiment`, `/experiment-audit`, and `/paper-writing`, but it should not silently run expensive experiments.
 
 ## Required Output Contract
 
-The skill must create the following files under one run directory, such as `paper-analysis/<YYYYMMDD-HHMMSS>_<paper-key>/`:
+The skill must create the following files under one run directory, such as `paper-analysis/<paper-key>/`:
 
 | File | Purpose |
 |---|---|
@@ -74,12 +74,12 @@ For the standalone `paper-praser-agent` repository, the OpenClaw target should n
 - `adapters/openclaw/RUNBOOK_CN.md` as the operator guide.
 - `scripts/paper_source.py` as the local source-preparation helper.
 
-`scripts/paper_source.py` reuses the ARIS `arxiv_fetch.py` design: pure-stdlib arXiv metadata lookup, PDF download, file-size validation, and rate-limit retry. It then adds this project's requirements: output under a unique run directory inside `paper-analysis/`, JSON metadata, and optional PDF text extraction through `pypdf`, `PyPDF2`, or `pdftotext`.
+`scripts/paper_source.py` reuses the ARIS `arxiv_fetch.py` design: pure-stdlib arXiv metadata lookup, PDF download, file-size validation, and rate-limit retry. It then adds this project's requirements: output under a unique paper-key run directory inside `paper-analysis/`, JSON metadata, and optional PDF text extraction through `pypdf`, `PyPDF2`, or `pdftotext`.
 
 ## Success Criteria
 
 - A user can invoke `/paper-solution-agent "<paper url or local path> — base repo: <repo>"`.
-- The skill clearly instructs the agent to generate all seven requested documents under a unique run directory inside `paper-analysis/`.
+- The skill clearly instructs the agent to generate all seven requested documents under a paper-key run directory inside `paper-analysis/`.
 - Missing data, proprietary dependencies, paid APIs, GPU needs, and unclear paper assumptions are surfaced in `07_HUMAN_HELP.md`.
 - The experiment plan separates main, ablation, and control experiments and gives success criteria.
 - Repository docs, adapters, and install scripts stay aligned with the actual file layout.
