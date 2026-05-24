@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Prepare paper source files for OpenClaw or Codex workflows.
+"""Prepare paper source files for OpenClaw, Codex, or Claude Code workflows.
 
 This helper adapts the pure-stdlib arXiv search/download pattern used by ARIS
 (`tools/arxiv_fetch.py`) and adds project-specific source preparation:
 
 - normalize arXiv IDs / URLs
 - fetch arXiv metadata
-- download the PDF into `paper-analysis/sources/`
+- create a timestamped run directory under `paper-analysis/`
+- download the PDF into `<analysis-dir>/sources/`
 - extract text when `pypdf`, `PyPDF2`, or `pdftotext` is available
 - write source manifests that an OpenClaw agent can read before generating the
-  seven `paper-analysis/*.md` documents
+  seven analysis documents
 """
 
 from __future__ import annotations
@@ -26,18 +27,21 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 ATOM_NS = "http://www.w3.org/2005/Atom"
 ARXIV_API_BASE = "http://export.arxiv.org/api/query"
 USER_AGENT = "paper-praser-agent/0.1 (+https://github.com/DebugTheWorld233/paper-praser-agent)"
 MIN_PDF_BYTES = 10_240
+MAX_SLUG_LENGTH = 96
 NEW_STYLE_ID_RE = re.compile(r"^\d{4}\.\d{4,5}(v\d+)?$")
 OLD_STYLE_ID_RE = re.compile(r"^[A-Za-z.-]+/\d{7}(v\d+)?$")
 
 
 @dataclass
 class PreparedSource:
+    analysis_dir: str
     source: str
     source_type: str
     pdf_path: str | None
@@ -85,6 +89,44 @@ def detect_source_type(source: str) -> str:
     if Path(value).exists():
         return "local_pdf" if lower.endswith(".pdf") else "local_file"
     return "unknown"
+
+
+def slugify(value: str, *, fallback: str = "paper") -> str:
+    """Return a filesystem-friendly ASCII slug."""
+    value = value.strip().lower()
+    value = re.sub(r"^https?://", "", value)
+    value = re.sub(r"[^a-z0-9._-]+", "-", value)
+    value = re.sub(r"-{2,}", "-", value).strip("-._")
+    return value[:MAX_SLUG_LENGTH].strip("-._") or fallback
+
+
+def build_source_slug(source: str, source_type: str, metadata: dict) -> str:
+    arxiv_id = metadata.get("id")
+    authors = metadata.get("authors") or []
+    if arxiv_id and authors:
+        return slugify(f"{authors[0]}-{arxiv_id}")
+    if arxiv_id:
+        return slugify(arxiv_id)
+    if source_type == "local_pdf":
+        return slugify(Path(source).stem)
+    if source_type == "pdf_url":
+        filename = Path(urllib.parse.urlparse(source).path).stem
+        return slugify(filename)
+    if source_type == "url":
+        parsed = urllib.parse.urlparse(source)
+        return slugify(f"{parsed.netloc}-{parsed.path}")
+    return slugify(source)
+
+
+def unique_child_dir(root: Path, slug: str) -> Path:
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    base = root / f"{timestamp}_{slug}"
+    candidate = base
+    suffix = 2
+    while candidate.exists():
+        candidate = root / f"{base.name}-{suffix}"
+        suffix += 1
+    return candidate
 
 
 def arxiv_api_url(arxiv_id: str) -> str:
@@ -225,17 +267,21 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def prepare(source: str, out_dir: Path) -> PreparedSource:
+def prepare(source: str, out_dir: Path, *, flat: bool = False) -> PreparedSource:
     source_type = detect_source_type(source)
-    source_dir = out_dir / "sources"
-    source_dir.mkdir(parents=True, exist_ok=True)
-
     metadata: dict = {"input": source, "source_type": source_type}
     pdf_path: Path | None = None
 
     if source_type == "arxiv":
         arxiv_id = normalize_arxiv_id(source)
         metadata.update(fetch_arxiv_metadata(arxiv_id))
+
+    analysis_dir = out_dir if flat else unique_child_dir(out_dir, build_source_slug(source, source_type, metadata))
+    source_dir = analysis_dir / "sources"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    metadata["analysis_dir"] = str(analysis_dir)
+
+    if source_type == "arxiv":
         safe_id = metadata["id"].replace("/", "_")
         pdf_path = source_dir / f"{safe_id}.pdf"
         metadata["download"] = download_url(metadata["pdf_url"], pdf_path)
@@ -271,6 +317,7 @@ def prepare(source: str, out_dir: Path) -> PreparedSource:
     write_json(metadata_path, metadata)
 
     return PreparedSource(
+        analysis_dir=str(analysis_dir),
         source=source,
         source_type=source_type,
         pdf_path=str(pdf_path) if pdf_path else None,
@@ -286,7 +333,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     prepare_parser = subparsers.add_parser("prepare", help="Download/copy a paper and extract text when possible")
     prepare_parser.add_argument("source", help="arXiv ID/URL, direct PDF URL, or local PDF path")
-    prepare_parser.add_argument("--out", default="paper-analysis", help="Output directory (default: paper-analysis)")
+    prepare_parser.add_argument(
+        "--out",
+        default="paper-analysis",
+        help=(
+            "Analysis root directory (default: paper-analysis). By default the command creates "
+            "a timestamped child directory under this root."
+        ),
+    )
+    prepare_parser.add_argument(
+        "--flat",
+        action="store_true",
+        help="Use --out exactly, preserving the legacy flat paper-analysis/sources layout.",
+    )
 
     metadata_parser = subparsers.add_parser("metadata", help="Fetch arXiv metadata only")
     metadata_parser.add_argument("arxiv_id", help="arXiv ID or URL")
@@ -297,7 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "prepare":
-        result = prepare(args.source, Path(args.out))
+        result = prepare(args.source, Path(args.out), flat=args.flat)
         print(json.dumps(result.__dict__, ensure_ascii=False, indent=2))
         return 0
     if args.command == "metadata":

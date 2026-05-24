@@ -4,7 +4,7 @@
 
 OpenClaw 不一定支持 Codex/Claude 风格的 slash skill。因此本项目在 OpenClaw 中采用 ARIS 的适配思路：**阶段化任务 + 文件化产出**。
 
-也就是说，不要求 OpenClaw 识别 `/paper-solution-agent`，而是让 OpenClaw 读取 `SKILL.md` 和本目录里的 prompt，然后按文件契约生成 `paper-analysis/`。
+也就是说，不要求 OpenClaw 识别 `/paper-solution-agent`，而是让 OpenClaw 读取 `SKILL.md` 和本目录里的 prompt，然后按文件契约在 `paper-analysis/` 下生成本次任务目录。
 
 ## 推荐流程
 
@@ -22,13 +22,15 @@ python scripts/paper_source.py prepare "https://arxiv.org/abs/1602.05629" --out 
 python scripts/paper_source.py prepare "C:\path\to\paper.pdf" --out paper-analysis
 ```
 
-脚本会尽量生成：
+脚本会创建一个新的任务目录，并尽量生成：
 
 ```text
-paper-analysis/sources/source_metadata.json
-paper-analysis/sources/<paper>.pdf
-paper-analysis/sources/paper_text.md
+paper-analysis/<run-dir>/sources/source_metadata.json
+paper-analysis/<run-dir>/sources/<paper>.pdf
+paper-analysis/<run-dir>/sources/paper_text.md
 ```
+
+脚本执行后会打印 JSON，其中 `analysis_dir` 就是本次运行应继续写入的目录。
 
 如果缺少 `pypdf`/`PyPDF2`/`pdftotext`，PDF 可能只能下载，不能抽取文本。此时可以：
 
@@ -43,24 +45,24 @@ python -m pip install pypdf
 复制：
 
 ```text
-openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md
+adapters/openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md
 ```
 
 把 `<PAPER_SOURCE>` 和 `<BASE_REPO_OR_NONE>` 替换成你的论文和代码仓库信息。
 
 ### 3. 检查输出
 
-OpenClaw 应生成：
+OpenClaw 应在 `analysis_dir` 下生成：
 
 ```text
-paper-analysis/00_MANIFEST.md
-paper-analysis/01_PAPER_INFO.md
-paper-analysis/02_DATA.md
-paper-analysis/03_ENVIRONMENT.md
-paper-analysis/04_EXPERIMENT_PLAN.md
-paper-analysis/05_ISSUES_AND_ASSUMPTIONS.md
-paper-analysis/06_EXECUTION_AND_REVIEW.md
-paper-analysis/07_HUMAN_HELP.md
+paper-analysis/<run-dir>/00_MANIFEST.md
+paper-analysis/<run-dir>/01_PAPER_INFO.md
+paper-analysis/<run-dir>/02_DATA.md
+paper-analysis/<run-dir>/03_ENVIRONMENT.md
+paper-analysis/<run-dir>/04_EXPERIMENT_PLAN.md
+paper-analysis/<run-dir>/05_ISSUES_AND_ASSUMPTIONS.md
+paper-analysis/<run-dir>/06_EXECUTION_AND_REVIEW.md
+paper-analysis/<run-dir>/07_HUMAN_HELP.md
 ```
 
 ### 4. 进入实现阶段

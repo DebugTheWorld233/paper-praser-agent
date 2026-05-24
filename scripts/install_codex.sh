@@ -19,3 +19,4 @@ cp "$SRC/SKILL.md" "$DEST/SKILL.md"
 
 echo "Installed paper-solution-agent to $DEST"
 echo "Restart Codex to pick up the new skill."
+echo "Uninstall by removing $DEST"

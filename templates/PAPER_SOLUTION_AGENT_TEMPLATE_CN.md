@@ -1,6 +1,6 @@
 # 论文解决方案 Agent 输入模板
 
-> 用于 `/paper-solution-agent`。建议保存为 `paper-analysis/INPUT.md`，也可以直接把这些信息写进命令参数。
+> 用于 `/paper-solution-agent`。建议在运行 `scripts/paper_source.py prepare ...` 后，保存为本次任务目录下的 `INPUT.md`，也可以直接把这些信息写进命令参数。
 
 ## 基本目标
 
@@ -30,7 +30,7 @@
 
 ## 输出要求
 
-`/paper-solution-agent` 需要在 `paper-analysis/` 下生成：
+`/paper-solution-agent` 需要在本次任务目录 `paper-analysis/<run-dir>/` 下生成：
 
 1. `01_PAPER_INFO.md`：论文信息、任务定义、核心贡献、主要结论、目标指标、要复现的图表/表格。
 2. `02_DATA.md`：数据集名称和版本、下载地址、处理流程、许可证和使用限制、是否需要人工帮助。

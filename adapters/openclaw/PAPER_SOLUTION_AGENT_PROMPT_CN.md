@@ -7,34 +7,37 @@
 
 目标论文：<PAPER_SOURCE>
 可选代码仓库：<BASE_REPO_OR_NONE>
-输出目录：paper-analysis/
+输出根目录：paper-analysis/
 输出语言：中文 Markdown
 
 请先读取并遵守：
 1. skills/paper-solution-agent/SKILL.md
-2. 如果存在，paper-analysis/sources/source_metadata.json
-3. 如果存在，paper-analysis/sources/paper_text.md
-4. 如果存在，templates/PAPER_SOLUTION_AGENT_TEMPLATE_CN.md
+2. 如果存在，templates/PAPER_SOLUTION_AGENT_TEMPLATE_CN.md
 
 如果目标论文是 arXiv 链接或 PDF，请优先运行：
 
 python scripts/paper_source.py prepare "<PAPER_SOURCE>" --out paper-analysis
 
+该命令会打印 JSON。若其中包含 `analysis_dir`，你必须把它作为本次任务的实际输出目录，并优先读取：
+
+1. <analysis_dir>/sources/source_metadata.json
+2. <analysis_dir>/sources/paper_text.md
+
 如果 PDF 文本抽取失败，不要编造论文内容。请改为：
 - 直接使用 OpenClaw 对 PDF 的读取能力；或
 - 请求用户提供 PDF 文本/论文附录；并
-- 在 paper-analysis/07_HUMAN_HELP.md 中记录该阻塞项。
+- 在 <analysis_dir>/07_HUMAN_HELP.md 中记录该阻塞项。
 
 必须生成或更新以下中文 Markdown 文件：
 
-0. paper-analysis/00_MANIFEST.md
-1. paper-analysis/01_PAPER_INFO.md
-2. paper-analysis/02_DATA.md
-3. paper-analysis/03_ENVIRONMENT.md
-4. paper-analysis/04_EXPERIMENT_PLAN.md
-5. paper-analysis/05_ISSUES_AND_ASSUMPTIONS.md
-6. paper-analysis/06_EXECUTION_AND_REVIEW.md
-7. paper-analysis/07_HUMAN_HELP.md
+0. <analysis_dir>/00_MANIFEST.md
+1. <analysis_dir>/01_PAPER_INFO.md
+2. <analysis_dir>/02_DATA.md
+3. <analysis_dir>/03_ENVIRONMENT.md
+4. <analysis_dir>/04_EXPERIMENT_PLAN.md
+5. <analysis_dir>/05_ISSUES_AND_ASSUMPTIONS.md
+6. <analysis_dir>/06_EXECUTION_AND_REVIEW.md
+7. <analysis_dir>/07_HUMAN_HELP.md
 
 写作要求：
 - 所有文档默认中文 Markdown。

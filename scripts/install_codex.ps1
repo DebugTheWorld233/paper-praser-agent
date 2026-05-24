@@ -24,3 +24,4 @@ Copy-Item -LiteralPath (Join-Path $src "SKILL.md") -Destination (Join-Path $dest
 
 Write-Host "Installed paper-solution-agent to $dest"
 Write-Host "Restart Codex to pick up the new skill."
+Write-Host "Uninstall by removing $dest"
