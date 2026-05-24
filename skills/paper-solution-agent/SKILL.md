@@ -15,14 +15,15 @@ Use this skill before implementation when the user has a specific paper and need
 
 ## Constants
 
-- **OUTPUT_DIR = `paper-analysis/`** — all generated documents go here.
+- **OUTPUT_ROOT = `paper-analysis/`** — root directory for all analysis runs.
+- **OUTPUT_DIR = `paper-analysis/<paper-key>/`** — generated documents for one paper go here. For arXiv papers, prefer `first-author-arxiv-id` as `paper-key`. If the directory already exists, add a numeric suffix such as `-2`.
 - **OUTPUT_LANGUAGE = `Chinese Markdown`** — write all generated analysis documents in Chinese Markdown by default, even when the paper itself is English. Only switch languages if the user explicitly asks for another output language.
 - **DEFAULT_GOAL = `reproduce`** — unless the user asks for improvement, extension, or audit.
 - **SUCCESS_STANDARD** — decide and record one of:
   - `code fully aligned`: official code exists, exact benchmark reproduction is feasible, or the user asks for strict replication.
   - `results close enough`: code/data is missing, stochastic training dominates, or implementation must be reconstructed from paper text.
 - **BLOCKER_MARKERS = `TODO`, `BLOCKED`, `NEEDS_HUMAN_CONFIRMATION`** — use these exact markers for missing facts.
-- **OPENCLAW_MODE** — when running in OpenClaw, treat this `SKILL.md` as a workflow contract instead of a slash command. Prefer file outputs and use `openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste entrypoint.
+- **OPENCLAW_MODE** — when running in OpenClaw, treat this `SKILL.md` as a workflow contract instead of a slash command. Prefer file outputs and use `adapters/openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste entrypoint.
 
 ## Inputs
 
@@ -42,21 +43,23 @@ When the project contains `scripts/paper_source.py`, use it before analysis for 
 python scripts/paper_source.py prepare "<paper-source>" --out paper-analysis
 ```
 
-This helper adapts ARIS-style arXiv metadata/PDF download logic and writes:
+This helper adapts ARIS-style arXiv metadata/PDF download logic, creates a unique run directory, and prints JSON containing `analysis_dir`. Use that `analysis_dir` as `OUTPUT_DIR` for the seven documents. It writes:
 
-- `paper-analysis/sources/source_metadata.json`
-- `paper-analysis/sources/<paper>.pdf`
-- `paper-analysis/sources/paper_text.md` when PDF text extraction succeeds
+- `<analysis_dir>/sources/source_metadata.json`
+- `<analysis_dir>/sources/<paper>.pdf`
+- `<analysis_dir>/sources/paper_text.md` when PDF text extraction succeeds
 
 If text extraction fails, do not fabricate paper content. Use the PDF directly if the host agent can read PDFs, or record the blocker in `07_HUMAN_HELP.md`.
+
+If the user explicitly requests the legacy flat layout, pass `--flat` and write directly under the supplied `--out` directory.
 
 ## Workflow
 
 ### Phase 0: Prepare the Workspace
 
-Create `paper-analysis/` if needed. If it already exists, preserve existing files and write updates intentionally.
+Create `paper-analysis/` if needed. For a new paper, create a fresh run directory using the `<paper-key>` convention. If the same paper key already exists, create `<paper-key>-2`, `<paper-key>-3`, and so on. If a run directory already exists because `scripts/paper_source.py` created it, continue inside that exact directory.
 
-Start `paper-analysis/00_MANIFEST.md` with:
+Start `<analysis_dir>/00_MANIFEST.md` with:
 
 ```markdown
 # Paper Analysis Manifest
@@ -75,7 +78,7 @@ Start `paper-analysis/00_MANIFEST.md` with:
 
 Read the paper first. Extract claims from the paper text, not from memory. If the source is a URL and the content cannot be fetched, record the blocker.
 
-If `paper-analysis/sources/source_metadata.json` or `paper-analysis/sources/paper_text.md` exists, read them before searching the web. Treat extracted text as a convenience source; verify important claims against the PDF/arXiv page when possible.
+If `<analysis_dir>/sources/source_metadata.json` or `<analysis_dir>/sources/paper_text.md` exists, read them before searching the web. Treat extracted text as a convenience source; verify important claims against the PDF/arXiv page when possible.
 
 When code is available:
 

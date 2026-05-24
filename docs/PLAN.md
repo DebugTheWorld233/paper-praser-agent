@@ -10,15 +10,15 @@ ARIS is a Markdown-skill research harness. The clean integration point is a new 
 
 - Skill name: `/paper-solution-agent`
 - Canonical location: `skills/paper-solution-agent/SKILL.md`
-- Codex mirror: `skills/skills-codex/paper-solution-agent/SKILL.md`
-- Default output directory when the skill runs: `paper-analysis/`
+- Default output root when the skill runs: `paper-analysis/`
+- Default per-run output directory: `paper-analysis/<paper-key>/`
 - Reusable starter template: `templates/PAPER_SOLUTION_AGENT_TEMPLATE_CN.md`
 
 This skill is a pre-experiment planning and audit artifact generator. It can hand off later to `/experiment-bridge`, `/experiment-plan`, `/run-experiment`, `/experiment-audit`, and `/paper-writing`, but it should not silently run expensive experiments.
 
 ## Required Output Contract
 
-The skill must create the following files under `paper-analysis/`:
+The skill must create the following files under one run directory, such as `paper-analysis/<paper-key>/`:
 
 | File | Purpose |
 |---|---|
@@ -59,29 +59,27 @@ The skill must create the following files under `paper-analysis/`:
 
 ## Implementation Steps
 
-1. Add canonical and Codex mirror skill files.
-2. Add a Chinese starter template that users can copy into `paper-analysis/` or use as a reference.
-3. Update `templates/README.md` so the template is discoverable.
-4. Update `docs/SKILLS_CATALOG.md` and `AGENT_GUIDE.md` so agents route paper-analysis requests to the new skill.
-5. Update the Codex mirror skill-count test from 67 to 68.
-6. Run targeted tests:
-   - `pytest tests/test_codex_skill_mirror.py`
-   - If available, a lightweight frontmatter/catalog grep sanity check.
+1. Add the canonical skill file under `skills/paper-solution-agent/`.
+2. Add a Chinese starter template that users can copy into a run directory as `INPUT.md`.
+3. Add adapter assets for OpenClaw and Claude Code.
+4. Add local install scripts for Codex and Claude Code.
+5. Update README and runbook documentation so all paths and workflows stay aligned.
+6. Run lightweight sanity checks for file layout, path references, and generated-output conventions.
 
 ## OpenClaw Packaging Extension
 
 For the standalone `paper-praser-agent` repository, the OpenClaw target should not depend on slash-command discovery. Instead, package:
 
-- `openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste OpenClaw entrypoint.
-- `openclaw/RUNBOOK_CN.md` as the operator guide.
+- `adapters/openclaw/PAPER_SOLUTION_AGENT_PROMPT_CN.md` as the copy-paste OpenClaw entrypoint.
+- `adapters/openclaw/RUNBOOK_CN.md` as the operator guide.
 - `scripts/paper_source.py` as the local source-preparation helper.
 
-`scripts/paper_source.py` reuses the ARIS `arxiv_fetch.py` design: pure-stdlib arXiv metadata lookup, PDF download, file-size validation, and rate-limit retry. It then adds this project's requirements: output under `paper-analysis/sources/`, JSON metadata, and optional PDF text extraction through `pypdf`, `PyPDF2`, or `pdftotext`.
+`scripts/paper_source.py` reuses the ARIS `arxiv_fetch.py` design: pure-stdlib arXiv metadata lookup, PDF download, file-size validation, and rate-limit retry. It then adds this project's requirements: output under a unique paper-key run directory inside `paper-analysis/`, JSON metadata, and optional PDF text extraction through `pypdf`, `PyPDF2`, or `pdftotext`.
 
 ## Success Criteria
 
 - A user can invoke `/paper-solution-agent "<paper url or local path> — base repo: <repo>"`.
-- The skill clearly instructs the agent to generate all seven requested documents under `paper-analysis/`.
+- The skill clearly instructs the agent to generate all seven requested documents under a paper-key run directory inside `paper-analysis/`.
 - Missing data, proprietary dependencies, paid APIs, GPU needs, and unclear paper assumptions are surfaced in `07_HUMAN_HELP.md`.
 - The experiment plan separates main, ablation, and control experiments and gives success criteria.
-- Codex mirror remains in sync with mainline skills.
+- Repository docs, adapters, and install scripts stay aligned with the actual file layout.
