@@ -2,7 +2,6 @@
 
 一个面向 Codex、Claude Code、OpenClaw 和 ARIS 风格工作流的论文解析与复现规划 agent。给它一篇论文 PDF、arXiv 链接、DOI 或项目页，它会生成一组中文 Markdown 文档，用来判断论文能否复现、需要哪些数据/环境/实验、哪里需要人工帮助。
 
-> 仓库目录和 GitHub 仓库名沿用历史名称 `paper-praser-agent`。功能描述上统一使用更准确的名称 `Paper Parser Agent`。
 
 ## 能做什么
 
